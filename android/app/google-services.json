@@ -1,0 +1,39 @@
+{
+  "project_info": {
+    "project_number": "584981589703",
+    "project_id": "feelme-e36c2",
+    "storage_bucket": "feelme-e36c2.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:584981589703:android:2e791d6dfb2d5a796798e2",
+        "android_client_info": {
+          "package_name": "com.example.feelme"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "584981589703-t2h80t5o8hlqbb7cni1c7sr58m95om47.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBqBqsPLSsgyIDiiK_TiLY364Ud4JgeBuk"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "584981589703-t2h80t5o8hlqbb7cni1c7sr58m95om47.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
