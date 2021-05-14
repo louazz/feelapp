@@ -29,6 +29,7 @@ dependencies:
   geolocator: 
   cloud_firestore: 
   intl:
+  geoflutterfire: 
 
 
   # The following adds the Cupertino Icons font to your application.

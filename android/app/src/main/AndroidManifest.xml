@@ -2,6 +2,7 @@
     package="com.example.feelme">
      <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
    <application
+        android:usesCleartextTraffic="true"
         android:label="feelme"
         android:icon="@mipmap/ic_launcher">
         <activity

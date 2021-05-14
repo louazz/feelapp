@@ -1,14 +1,17 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:feelme/Screens/ChatDetailPage/ChatDetailPage.dart';
 import 'package:feelme/models/ChatUserModel.dart';
 import 'package:flutter/material.dart';
+import 'package:geolocator/geolocator.dart';
 
 // ignore: must_be_immutable
 class ConversationList extends StatefulWidget {
   String name;
   String messageText;
   String imageUrl;
-  String time;
+  DateTime time;
   String id;
+  GeoPoint pos;
   bool isMessageRead;
   ConversationList(
       {@required this.name,
@@ -37,8 +40,9 @@ class _ConversationListState extends State<ConversationList> {
                   name: widget.name,
                   messageText: widget.messageText,
                   time: widget.time,
-                id: widget.id, 
-                imageURL: ''),
+                  pos: widget.pos,
+                  id: widget.id,
+                  imageURL: ''),
             ),
           ),
         );
@@ -89,7 +93,7 @@ class _ConversationListState extends State<ConversationList> {
               ),
             ),
             Text(
-              widget.time,
+              widget.time.toString(),
               style: TextStyle(
                   fontSize: 12,
                   fontWeight: widget.isMessageRead

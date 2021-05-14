@@ -1,11 +1,11 @@
 import 'dart:async';
-import 'dart:math' show cos, sqrt, asin;
 import 'package:feelme/widgets/ConversationList.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:feelme/models/ChatUserModel.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:geolocator/geolocator.dart';
+import 'package:geoflutterfire/geoflutterfire.dart';
 
 class ChatPage extends StatefulWidget {
   @override
@@ -17,10 +17,11 @@ class _ChatPageState extends State<ChatPage> {
   Position _currentPosition;
   TextEditingController newgroupename = new TextEditingController();
   TextEditingController newgroupeslogon = new TextEditingController();
+
   var _distance = 2;
   Timer timer;
   _getCurrentLocation() async {
-    LocationPermission permission = await Geolocator.requestPermission();
+    LocationPermission permission = await Geolocator.checkPermission();
     Geolocator.getCurrentPosition(
             desiredAccuracy: LocationAccuracy.best,
             forceAndroidLocationManager: true)
@@ -33,68 +34,91 @@ class _ChatPageState extends State<ChatPage> {
     });
   }
 
-  double calculateDistance(lat1, lon1, lat2, lon2) {
-    var p = 0.017453292519943295;
-    var c = cos;
-    var a = 0.5 -
-        c((lat2 - lat1) * p) / 2 +
-        c(lat1 * p) * c(lat2 * p) * (1 - c((lon2 - lon1) * p)) / 2;
-    return 12742 * asin(sqrt(a));
-  }
-
-  void checkchange() {
-    List<ChatUsers> cu = [];
+  final geo = Geoflutterfire();
+  final firestoreInstance = FirebaseFirestore.instance;
+  Future<void> checkchange() async {
     try {
-      firestoreInstance
-          .collection("ChatRoom")
-          .orderBy('time', descending: false)
-          .get()
-          .then((querySnapshot) {
-        querySnapshot.docs.forEach((result) {
-          print(result.data()["time"]);
+      _getCurrentLocation();
+      List<ChatUsers> cu = [];
+
+      firestoreInstance.collection('ChatRoom').get().then((querySnapshot) {
+        querySnapshot.docs.forEach((result) async {
           var data = result.data();
-          print(result.id);
-          Position p = data["geo"];
-          double d = calculateDistance(p.longitude, p.latitude,
+          GeoPoint p = data["goe"];
+          print(data["goe"].longitude.toString());
+          double d = Geolocator.bearingBetween(p.longitude, p.latitude,
               _currentPosition.longitude, _currentPosition.latitude);
+          Timestamp t = data["time"];
           if (d < _distance) {
             setState(() {
               cu.add(ChatUsers(
                   name: data["name"].toString(),
                   messageText: data["Slogon"].toString(),
                   imageURL: imageURL,
-                  time: DateTime.fromMillisecondsSinceEpoch(data["time"])
-                      .toString(),
+                  time: t.toDate(),
+                  pos: data["geo"],
                   id: result.id));
             });
           }
+        });
+        setState(() {
+          chatUsers = cu;
         });
       });
     } catch (e) {
       print(e);
     }
-    setState(() {
-      chatUsers = cu;
-    });
   }
 
-  final firestoreInstance = FirebaseFirestore.instance;
-  @override
-  void initState() {
+  void checker() {
+    print(_currentPosition.toString());
+// Create a geoFirePoint
+    GeoFirePoint center = geo.point(latitude: 34.4739, longitude: 9.4613);
+    print(center.latitude.toString());
+// get the collection reference or query
+    var collectionReference = firestoreInstance.collection('ChatRoom');
+    double radius = 12;
     try {
-      _getCurrentLocation();
+      Stream<List<DocumentSnapshot>> stream = geo
+          .collection(collectionRef: collectionReference)
+          .within(center: center, radius: 12, field: "goe");
+
+      stream.listen((List<DocumentSnapshot> documentList) {
+        print(documentList.isEmpty.toString());
+        documentList.forEach((result) {
+          var data = result.data();
+          print(result.toString());
+          Timestamp t = data["time"];
+          setState(() {
+            chatUsers.add(ChatUsers(
+                name: data["name"].toString(),
+                messageText: data["Slogon"].toString(),
+                imageURL: imageURL,
+                time: t.toDate(),
+                pos: data["geo"],
+                id: result.id));
+          });
+        });
+      });
     } catch (e) {
       print(e);
     }
-    timer = Timer.periodic(Duration(seconds: 1), (Timer t) => checkchange());
+  }
+  // var checker = true;
+
+  @override
+  void initState() {
     super.initState();
+    _getCurrentLocation();
+    timer = Timer.periodic(Duration(seconds: 20), (Timer t) => checkchange());
   }
 
-  static const imageURL = "assets/images/icon1.jpeg";
+  // timer = Timer.periodic(Duration(seconds:40), (Timer t) => checkchange());
+  static const imageURL = "assets/images/icon1.png";
 
   @override
   Widget build(BuildContext context) {
-    final firestoreInstance = FirebaseFirestore.instance;
+    // final firestoreInstance = FirebaseFirestore.instance;
 
     return Scaffold(
       body: SingleChildScrollView(
@@ -176,14 +200,8 @@ class _ChatPageState extends State<ChatPage> {
                                             "time": Timestamp.fromDate(
                                                 DateTime.now()),
                                             "goe": new GeoPoint(
-                                                _currentPosition.altitude,
+                                                _currentPosition.latitude,
                                                 _currentPosition.longitude)
-                                          }).then((value) {
-                                            print(value.id);
-                                            firestoreInstance
-                                                .collection("ChatRoom")
-                                                .doc(value.id)
-                                                .collection("messages");
                                           });
                                           Navigator.pop(context);
                                         },
@@ -242,6 +260,7 @@ class _ChatPageState extends State<ChatPage> {
       ),
       floatingActionButton: FloatingActionButton(
         onPressed: () {
+          _getCurrentLocation();
           showCupertinoDialog(
               context: context,
               builder: (BuildContext context) {

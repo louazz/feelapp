@@ -92,7 +92,7 @@ class _ChatDetailPageState extends State<ChatDetailPage> {
 
   @override
   Widget build(BuildContext context) {
-    final firestoreInstance = FirebaseFirestore.instance;
+  //  final firestoreInstance = FirebaseFirestore.instance;
     ChatUsers c = ModalRoute.of(context).settings.arguments;
     id = c.id;
     chatname = c.name;
